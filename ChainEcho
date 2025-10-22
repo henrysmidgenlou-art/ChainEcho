@@ -47,3 +47,7 @@
             try {
                 // STEP 1: Get token metadata
                 const metaRes = await fetch(`https://api.helius.xyz/v0/tokens/${ca}/metadata?api-key=00000000000000000000000000000000
+cd ChainEcho                    # Navigate to your folder
+git add .                       # Stage ALL changes
+git commit -m "Update live page" # Save changes
+git push                        # ← THIS MAKES IT LIVE!
