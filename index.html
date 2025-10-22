@@ -1,95 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Solana Tracker</title>
+    <title>Solana Dev Token Tracker</title>
     <style>
         body {background:black;color:white;font-family:Arial;padding:20px;}
-        h1 {color:lime;text-align:center;}
-        button {width:100%;padding:15px;background:lime;color:black;font-size:18px;border:none;cursor:pointer;}
-        button:hover {background:#00cc66;}
-        .input {width:100%;padding:15px;background:#111;border:1px solid #444;color:white;margin-bottom:10px;}
-        .results {margin-top:20px;background:#111;padding:20px;border-radius:10px;}
+        h1 {color:#00bfff;text-align:center;}
+        input {width:100%;padding:15px;background:#111;border:1px solid #444;color:white;margin-bottom:10px;}
+        button {width:100%;padding:15px;background:#00bfff;color:black;font-size:18px;border:none;cursor:pointer;}
+        button:hover {background:#0099cc;}
+        .results {margin-top:20px;background:#111;padding:20px;display:none;}
         table {width:100%;border-collapse:collapse;}
-        th {background:lime;color:black;padding:10px;}
+        th {background:#00bfff;color:black;padding:10px;}
         td {padding:10px;border-bottom:1px solid #333;}
-        a {color:lime;}
-        .examples {margin:10px 0;}
-        .example {background:#222;padding:10px;margin:5px 0;cursor:pointer;}
-        .example:hover {background:#333;}
+        a {color:#00bfff;}
+        .loading {color:#00bfff;text-align:center;display:none;}
+        .error {color:red;}
     </style>
 </head>
 <body>
     <h1>🪙 Solana Dev Token Tracker</h1>
     
-    <input class="input" id="ca" placeholder="Paste token CA here">
+    <input id="ca" placeholder="PASTE ANY SOLANA TOKEN CA HERE">
+    <button onclick="scanToken()">🔍 SCAN TOKEN</button>
     
-    <div class="examples">
-        <div class="example" onclick="loadCA('6p6xgHyF7AeE6TZkSmFsko444wqoPXX9bfv1NrhrpT')">📋 6p6xg... (Click to load)</div>
-        <div class="example" onclick="loadCA('4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R')">📋 4k3Dyj... (Click to load)</div>
-        <div class="example" onclick="loadCA('7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU')">📋 7xKXtg... (Click to load)</div>
+    <div id="loading" class="loading">⏳ Scanning blockchain... (10 seconds)</div>
+    <div id="results" class="results">
+        <div id="output"></div>
     </div>
-    
-    <button onclick="findTokens()">🔍 FIND OTHER TOKENS</button>
-    
-    <div id="results" class="results" style="display:none;"></div>
 
     <script>
-        // REAL TOKEN DATABASE
-        const tokens = {
-            '6p6xgHyF7AeE6TZkSmFsko444wqoPXX9bfv1NrhrpT': {
-                name: 'TESTCOIN', dev: '5xY7m3k9p2q8r4t6u1v3w5x7y9z0a2b4c6d8e',
-                others: [
-                    {name:'SUPERCOIN ($SUPER)', addr:'9p8q7r6s5t4u3v2w1x0y9z8a7b6c5d4e3f2g1h0i'},
-                    {name:'MEGACOIN ($MEGA)', addr:'1q2w3e4r5t6y7u8i9o0p1a2s3d4f5g6h7j8k9l0'}
-                ]
-            },
-            '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R': {
-                name: 'MOONCOIN', dev: '9zX8p2q5r8t1u4v7w0x3y6z9a2b5c8d1e4f7g0h3i',
-                others: [
-                    {name:'ROCKETCOIN ($ROCKET)', addr:'3a4s5d6f7g8h9j0k1l2z3x4c5v6b7n8m9q0w1e2r'},
-                    {name:'STARCOIN ($STAR)', addr:'5t6y7u8i9o0p1a2s3d4f5g6h7j8k9l0z1x2c3v4b'},
-                    {name:'GALAXY ($GALAXY)', addr:'7u8i9o0p1a2s3d4f5g6h7j8k9l0z1x2c3v4b5n6m'}
-                ]
-            },
-            '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU': {
-                name: 'DOGECOIN', dev: '2aB3c6d9f2g5h8j1k4l7m0n3p6q9r2s5t8u1v4w7',
-                others: [
-                    {name:'PUPPYCOIN ($PUPPY)', addr:'8i9o0p1a2s3d4f5g6h7j8k9l0z1x2c3v4b5n6m7q'}
-                ]
-            }
-        };
-
-        function loadCA(ca) {
-            document.getElementById('ca').value = ca;
-        }
-
-        function findTokens() {
+        async function scanToken() {
             const ca = document.getElementById('ca').value.trim();
-            const results = document.getElementById('results');
-            
-            if (!tokens[ca]) {
-                alert('Use one of the examples above!');
+            if (!ca || ca.length !== 44) {
+                alert('Enter a 44-character token address');
                 return;
             }
             
-            const data = tokens[ca];
-            let html = `
-                <h3>🎉 Found ${data.others.length} Other Tokens!</h3>
-                <p><strong>Developer:</strong> <a href="https://solscan.io/account/${data.dev}" target="_blank">${data.dev}</a></p>
-                <p><strong>Your Token:</strong> ${data.name}</p>
-                <table>
-                    <tr><th>Name</th><th>Address</th><th>View</th></tr>
-            `;
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const output = document.getElementById('output');
             
-            data.others.forEach(t => {
-                html += `<tr><td>${t.name}</td><td>${t.addr.slice(0,8)}...</td><td><a href="https://solscan.io/token/${t.addr}" target="_blank">Solscan</a></td></tr>`;
-            });
-            
-            html += '</table>';
-            results.innerHTML = html;
+            loading.style.display = 'block';
             results.style.display = 'block';
-        }
-    </script>
-</body>
-</html>
-
+            output.innerHTML = '';
+            
+            try {
+                // STEP 1: Get token metadata
+                const metaRes = await fetch(`https://api.helius.xyz/v0/tokens/${ca}/metadata?api-key=00000000000000000000000000000000
+
