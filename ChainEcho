@@ -4,16 +4,16 @@
     <title>Solana Dev Token Tracker</title>
     <style>
         body {background:black;color:white;font-family:Arial;padding:20px;}
-        h1 {color:lime;text-align:center;}
+        h1 {color:#00bfff;text-align:center;}
         input {width:100%;padding:15px;background:#111;border:1px solid #444;color:white;margin-bottom:10px;}
-        button {width:100%;padding:15px;background:lime;color:black;font-size:18px;border:none;cursor:pointer;}
-        button:hover {background:#00cc66;}
+        button {width:100%;padding:15px;background:#00bfff;color:black;font-size:18px;border:none;cursor:pointer;}
+        button:hover {background:#0099cc;}
         .results {margin-top:20px;background:#111;padding:20px;display:none;}
         table {width:100%;border-collapse:collapse;}
-        th {background:lime;color:black;padding:10px;}
+        th {background:#00bfff;color:black;padding:10px;}
         td {padding:10px;border-bottom:1px solid #333;}
-        a {color:lime;}
-        .loading {color:lime;text-align:center;display:none;}
+        a {color:#00bfff;}
+        .loading {color:#00bfff;text-align:center;display:none;}
         .error {color:red;}
     </style>
 </head>
@@ -46,100 +46,4 @@
             
             try {
                 // STEP 1: Get token metadata
-                const metaRes = await fetch(`https://api.helius.xyz/v0/tokens/${ca}/metadata?api-key=00000000000000000000000000000000`);
-                const meta = await metaRes.json();
-                if (!meta[0]) throw new Error('Invalid token address');
-                
-                // STEP 2: Get creation transaction
-                const sigsRes = await fetch('https://api.mainnet-beta.solana.com', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({
-                        jsonrpc: '2.0', id: 1,
-                        method: 'getSignaturesForAddress',
-                        params: [ca, {limit: 1}]
-                    })
-                });
-                const sigs = await sigsRes.json();
-                const creationSig = sigs.result[0].signature;
-                
-                // STEP 3: Get developer wallet
-                const txRes = await fetch('https://api.mainnet-beta.solana.com', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({
-                        jsonrpc: '2.0', id: 1,
-                        method: 'getTransaction',
-                        params: [creationSig, {encoding: 'json'}]
-                    })
-                });
-                const tx = await txRes.json();
-                const devWallet = tx.result.transaction.message.accountKeys[0];
-                
-                // STEP 4: Get dev's recent transactions (last 10)
-                const devSigsRes = await fetch('https://api.mainnet-beta.solana.com', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({
-                        jsonrpc: '2.0', id: 1,
-                        method: 'getSignaturesForAddress',
-                        params: [devWallet, {limit: 10}]
-                    })
-                });
-                const devSigs = await devSigsRes.json();
-                
-                // STEP 5: Find other potential tokens (simple scan)
-                const otherTokens = [];
-                for (let i = 0; i < Math.min(5, devSigs.result?.length || 0); i++) {
-                    if (devSigs.result[i].signature === creationSig) continue;
-                    
-                    const otherTxRes = await fetch('https://api.mainnet-beta.solana.com', {
-                        method: 'POST',
-                        headers: {'Content-Type':'application/json'},
-                        body: JSON.stringify({
-                            jsonrpc: '2.0', id: 1,
-                            method: 'getTransaction',
-                            params: [devSigs.result[i].signature, {encoding: 'json'}]
-                        })
-                    });
-                    const otherTx = await otherTxRes.json();
-                    
-                    if (otherTx.result) {
-                        const accounts = otherTx.result.transaction.message.accountKeys;
-                        accounts.forEach(acc => {
-                            if (acc !== ca && acc.length === 44 && !otherTokens.includes(acc)) {
-                                otherTokens.push(acc);
-                            }
-                        });
-                    }
-                }
-                
-                // STEP 6: Display results
-                let html = `
-                    <h3>✅ TOKEN ANALYZED!</h3>
-                    <p><strong>Token:</strong> ${meta[0].name} (${meta[0].symbol})</p>
-                    <p><strong>Address:</strong> ${ca.slice(0,8)}...</p>
-                    <p><strong>Developer Wallet:</strong> <a href="https://solscan.io/account/${devWallet}" target="_blank">${devWallet}</a></p>
-                `;
-                
-                if (otherTokens.length > 0) {
-                    html += `<h4>🔍 Found ${otherTokens.length} potential related tokens:</h4><table><tr><th>Token Address</th><th>View on Solscan</th></tr>`;
-                    otherTokens.slice(0, 5).forEach(token => {
-                        html += `<tr><td>${token.slice(0,8)}...</td><td><a href="https://solscan.io/token/${token}" target="_blank">View</a></td></tr>`;
-                    });
-                    html += '</table>';
-                } else {
-                    html += '<p><strong>No other tokens found in last 10 transactions.</strong></p>';
-                }
-                
-                output.innerHTML = html;
-                
-            } catch (error) {
-                output.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
-            }
-            
-            loading.style.display = 'none';
-        }
-    </script>
-</body>
-</html>
+                const metaRes = await fetch(`https://api.helius.xyz/v0/tokens/${ca}/metadata?api-key=00000000000000000000000000000000
